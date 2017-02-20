@@ -5,7 +5,7 @@ This is the example project for [Making a REST API in Play](http://developer.lig
 ## Appendix
 
 ### Planning
-![Planning Board](https://github.com/kapit4n/play-news-api/projects/1)
+[Planning Board](https://github.com/kapit4n/play-news-api/projects/1)
 
 
 ### Running
