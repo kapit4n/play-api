@@ -1,10 +1,17 @@
 package v1.news
 
 import javax.inject.{Inject, Singleton}
-
+import play.api.db.slick.DatabaseConfigProvider
+import slick.driver.JdbcProfile
+import play.api.libs.json._
 import scala.concurrent.Future
 
 final case class NewsData(id: NewsId, title: String, body: String)
+final case class NewsDataWrapper(id: Long, title: String, body: String)
+
+object NewsDataWrapper {
+  implicit val NewsDataWrapperFormat = Json.format[NewsDataWrapper]
+}
 
 class NewsId private (val underlying: Int) extends AnyVal {
   override def toString: String = underlying.toString
@@ -32,7 +39,18 @@ trait NewsRepository {
   * A trivial implementation for the News Repository.
   */
 @Singleton
-class NewsRepositoryImpl @Inject() extends NewsRepository {
+class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) extends NewsRepository {
+  private val dbConfig = dbConfigProvider.get[JdbcProfile]
+
+  import dbConfig._
+  import driver.api._
+
+  private class NewsTable(tag: Tag) extends Table[NewsDataWrapper](tag, "news") {
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def title = column[String]("title")
+    def body = column[String]("body")
+    def * = (id, title, body) <> ((NewsDataWrapper.apply _).tupled, NewsDataWrapper.unapply)
+  }
 
   private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
 
