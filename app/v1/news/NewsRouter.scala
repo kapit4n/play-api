@@ -12,7 +12,7 @@ import play.api.routing.sird._
 class NewsRouter @Inject()(controller: NewsController) extends SimpleRouter {
   val prefix = "/v1/news"
 
-  def link(id: NewsId): String = {
+  def link(id: Int): String = {
     import com.netaporter.uri.dsl._
     val url = prefix / id.toString
     url.toString()

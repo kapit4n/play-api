@@ -36,7 +36,7 @@ class NewsResourceHandler @Inject()(
     newsRepository: NewsRepository)(implicit ec: ExecutionContext) {
 
   def create(newsInput: NewsFormInput): Future[NewsResource] = {
-    val data = NewsData(NewsId("999"), newsInput.title, newsInput.body)
+    val data = NewsData(999, newsInput.title, newsInput.body)
     // We don't actually create the news, so return what we have
     newsRepository.create(data).map { id =>
       createNewsResource(data)
@@ -44,7 +44,7 @@ class NewsResourceHandler @Inject()(
   }
 
   def lookup(id: String): Future[Option[NewsResource]] = {
-    val newsFuture = newsRepository.get(NewsId(id))
+    val newsFuture = newsRepository.get(id.toInt)
     newsFuture.map { maybeNewsData =>
       maybeNewsData.map { newsData =>
         createNewsResource(newsData)
