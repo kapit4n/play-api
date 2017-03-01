@@ -58,6 +58,11 @@ class NewsResourceHandler @Inject()(
     }
   }
 
+  def delete(id: String): Future[Int] = {
+    newsRepository.delete(id.toInt).map { res => res
+    }
+  }
+
   private def createNewsResource(p: NewsData): NewsResource = {
     NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body)
   }

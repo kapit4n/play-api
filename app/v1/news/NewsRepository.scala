@@ -22,6 +22,8 @@ trait NewsRepository {
   def list(): Future[Iterable[NewsData]]
 
   def get(id: Int): Future[Option[NewsData]]
+
+  def delete(id: Int): Future[Int]
 }
 
 /**
@@ -69,5 +71,11 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
       returning tableQ.map(_.id)
       into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2))) += pair
   }
+
+  def delete(id: Int): Future[Int] = db.run {
+    (tableQ.filter(_.id === id)).delete
+  }
+
+
 
 }

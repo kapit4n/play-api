@@ -51,6 +51,14 @@ class NewsController @Inject()(
     }
   }
 
+  def delete(id: String): Action[AnyContent] = {
+    action.async { implicit request =>
+      handler.delete(id).map { delNews =>
+        Ok(Json.toJson(delNews))
+      }
+    }
+  }
+
   private def processJsonNews[A]()(
       implicit request: NewsRequest[A]): Future[Result] = {
     def failure(badForm: Form[NewsFormInput]) = {

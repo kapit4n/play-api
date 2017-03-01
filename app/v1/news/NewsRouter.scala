@@ -27,6 +27,11 @@ class NewsRouter @Inject()(controller: NewsController) extends SimpleRouter {
 
     case GET(p"/$id") =>
       controller.show(id)
+
+    case DELETE(p"/$id") =>
+      controller.delete(id)
   }
+
+
 
 }
