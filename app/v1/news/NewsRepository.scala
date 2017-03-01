@@ -17,7 +17,7 @@ object NewsData {
   * A pure non-blocking interface for the NewsRepository.
   */
 trait NewsRepository {
-  def create(data: NewsData): Future[Unit]
+  def create(data: NewsData): Future[NewsData]
 
   def list(): Future[Iterable[NewsData]]
 
@@ -54,21 +54,20 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
   )
 
   override def list(): Future[Iterable[NewsData]] = {
-    Future.successful {
-      logger.trace(s"list: ")
-      newsList
-    }
+      db.run {
+        tableQ.sortBy(m => (m.id)).result
+      }
   }
 
-  override def get(id: Int): Future[Option[NewsData]] = {
-    Future.successful {
-      logger.trace(s"get: id = $id")
-      newsList.find(news => news.id == id)
-    }
+  override def get(id: Int): Future[Option[NewsData]] = db.run {
+    tableQ.filter(_.id === id).result.headOption
   }
 
-  def create(data: NewsData): Future[Unit] = Future {
-    (tableQ returning tableQ.map(_.id)) += NewsData(0, "title", "body")
+  def create(data: NewsData): Future[NewsData] = db.run {
+    val pair = ("Title", "body")
+    (tableQ.map(p => (p.title, p.body))
+      returning tableQ.map(_.id)
+      into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2))) += pair
   }
 
 }

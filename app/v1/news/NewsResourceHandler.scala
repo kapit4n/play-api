@@ -36,9 +36,10 @@ class NewsResourceHandler @Inject()(
     newsRepository: NewsRepository)(implicit ec: ExecutionContext) {
 
   def create(newsInput: NewsFormInput): Future[NewsResource] = {
-    val data = NewsData(999, newsInput.title, newsInput.body)
+    val data = NewsData(0, newsInput.title, newsInput.body)
     // We don't actually create the news, so return what we have
     newsRepository.create(data).map { id =>
+      print(id)
       createNewsResource(data)
     }
   }

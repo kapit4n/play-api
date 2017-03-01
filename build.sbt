@@ -4,7 +4,7 @@ lazy val GatlingTest = config("gatling") extend Test
 
 scalaVersion := "2.11.8"
 
-libraryDependencies += "com.typesafe.play" %% "play-slick" % "1.1.0"
+libraryDependencies += "com.typesafe.slick" %% "slick" % "3.0.0"
 libraryDependencies += "com.typesafe.play" %% "play-slick-evolutions" % "1.1.0"
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"
 libraryDependencies += "com.netaporter" %% "scala-uri" % "0.4.14"
