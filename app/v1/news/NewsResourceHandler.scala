@@ -9,7 +9,7 @@ import play.api.libs.json._
 /**
   * DTO for displaying news information.
   */
-case class NewsResource(id: String, link: String, title: String, body: String)
+case class NewsResource(id: String, link: String, title: String, body: String, likes: Int)
 
 object NewsResource {
 
@@ -22,7 +22,8 @@ object NewsResource {
         "id" -> news.id,
         "link" -> news.link,
         "title" -> news.title,
-        "body" -> news.body
+        "body" -> news.body,
+        "likes" -> news.likes
       )
     }
   }
@@ -36,7 +37,7 @@ class NewsResourceHandler @Inject()(
     newsRepository: NewsRepository)(implicit ec: ExecutionContext) {
 
   def create(newsInput: NewsFormInput): Future[NewsResource] = {
-    val data = NewsData(0, newsInput.title, newsInput.body)
+    val data = NewsData(0, newsInput.title, newsInput.body, 0)
     // We don't actually create the news, so return what we have
     newsRepository.create(data).map { res =>
       createNewsResource(res)
@@ -45,6 +46,15 @@ class NewsResourceHandler @Inject()(
 
   def lookup(id: String): Future[Option[NewsResource]] = {
     val newsFuture = newsRepository.get(id.toInt)
+    newsFuture.map { maybeNewsData =>
+      maybeNewsData.map { newsData =>
+        createNewsResource(newsData)
+      }
+    }
+  }
+
+  def reaction(id: String): Future[Option[NewsResource]] = {
+    val newsFuture = newsRepository.reaction(id.toInt)
     newsFuture.map { maybeNewsData =>
       maybeNewsData.map { newsData =>
         createNewsResource(newsData)
@@ -64,7 +74,7 @@ class NewsResourceHandler @Inject()(
   }
 
   private def createNewsResource(p: NewsData): NewsResource = {
-    NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body)
+    NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body, p.likes)
   }
 
 }

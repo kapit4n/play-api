@@ -8,7 +8,7 @@ import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class NewsFormInput(title: String, body: String)
+case class NewsFormInput(title: String, body: String, likes: Int)
 
 /**
   * Takes HTTP requests and produces JSON.
@@ -24,7 +24,8 @@ class NewsController @Inject()(
     Form(
       mapping(
         "title" -> nonEmptyText,
-        "body" -> text
+        "body" -> text,
+        "likes" -> number
       )(NewsFormInput.apply)(NewsFormInput.unapply)
     )
   }
@@ -40,6 +41,14 @@ class NewsController @Inject()(
   def process: Action[AnyContent] = {
     action.async { implicit request =>
       processJsonNews()
+    }
+  }
+
+  def processReaction(id: String): Action[AnyContent] = {
+    action.async { implicit request =>
+      handler.reaction(id).map { news =>
+        Ok(Json.toJson("This is the example"))
+      }
     }
   }
 

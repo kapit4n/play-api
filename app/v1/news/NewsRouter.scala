@@ -25,11 +25,16 @@ class NewsRouter @Inject()(controller: NewsController) extends SimpleRouter {
     case POST(p"/") =>
       controller.process
 
+    case GET(p"/$id/reaction") =>
+      controller.processReaction(id)
+
     case GET(p"/$id") =>
       controller.show(id)
 
     case DELETE(p"/$id") =>
       controller.delete(id)
+
+
   }
 
 
