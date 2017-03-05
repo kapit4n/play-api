@@ -76,14 +76,15 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
   }
 
   def reaction(id: Int): Future[Option[NewsData]] = db.run {
-    val q = db.run(tableQ.filter(_.id === id).result.headOption)
+    val res = db.run(tableQ.filter(_.id === id).result.headOption)
     val f: Future[Option[NewsData]] = db.run(tableQ.filter(_.id === id).result.headOption)
     f.onSuccess { case s => {
         val q = for { c <- tableQ if c.id === id } yield c.likes
-        val updateAction = q.update(s.likes + 1)
-        return q
+        val updateAction = q.update(s.get.likes + 1)
+        db.run(updateAction)
       }
     }
+    return res
   }
 
   def delete(id: Int): Future[Int] = db.run {
