@@ -9,8 +9,14 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 case class NewsData(id: Int, title: String, body: String, likes: Int)
 
+case class CommentsData(id: Int, newsId: Int, body: String, likes: Int)
+
 object NewsData {
   implicit val NewsDataFormat = Json.format[NewsData]
+}
+
+object CommentsData {
+  implicit val CommentsDataFormat = Json.format[CommentsData]
 }
 
 /**
@@ -46,40 +52,43 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
     def * = (id, title, body, likes) <> ((NewsData.apply _).tupled, NewsData.unapply)
   }
 
-  private val tableQ = TableQuery[NewsTable]
+  private val newsQ = TableQuery[NewsTable]
+
+  private class CommentsTable(tag: Tag) extends Table[CommentsData](tag, "comments") {
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def newsId = column[Int]("newsId")
+    def body = column[String]("body")
+    def likes = column[Int]("likes")
+    def news = foreignKey("SUP_FK", newsId, newsQ)(_.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    def * = (id, newsId, body, likes) <> ((CommentsData.apply _).tupled, CommentsData.unapply)
+  }
+
+  private val commentsQ = TableQuery[CommentsTable]
 
   private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
 
-  private val newsList = List(
-    NewsData(1, "title 1", "blog news 1", 0),
-    NewsData(2, "title 2", "blog news 2", 0),
-    NewsData(3, "title 3", "blog news 3", 0),
-    NewsData(4, "title 4", "blog news 4", 0),
-    NewsData(5, "title 5", "blog news 5", 0)
-  )
-
   override def list(): Future[Iterable[NewsData]] = {
       db.run {
-        tableQ.sortBy(m => (m.id)).result
+        newsQ.sortBy(m => (m.id)).result
       }
   }
 
   override def get(id: Int): Future[Option[NewsData]] = db.run {
-    tableQ.filter(_.id === id).result.headOption
+    newsQ.filter(_.id === id).result.headOption
   }
 
   def create(data: NewsData): Future[NewsData] = db.run {
     val pair = ("Title", "body", 1)
-    (tableQ.map(p => (p.title, p.body, p.likes))
-      returning tableQ.map(_.id)
+    (newsQ.map(p => (p.title, p.body, p.likes))
+      returning newsQ.map(_.id)
       into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2, nameAge._3))) += pair
   }
 
   def reaction(id: Int): Future[Option[NewsData]] = db.run {
-    val res = db.run(tableQ.filter(_.id === id).result.headOption)
-    val f: Future[Option[NewsData]] = db.run(tableQ.filter(_.id === id).result.headOption)
+    val res = db.run(newsQ.filter(_.id === id).result.headOption)
+    val f: Future[Option[NewsData]] = db.run(newsQ.filter(_.id === id).result.headOption)
     f.onSuccess { case s => {
-        val q = for { c <- tableQ if c.id === id } yield c.likes
+        val q = for { c <- newsQ if c.id === id } yield c.likes
         val updateAction = q.update(s.get.likes + 1)
         db.run(updateAction)
       }
@@ -88,9 +97,6 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
   }
 
   def delete(id: Int): Future[Int] = db.run {
-    (tableQ.filter(_.id === id)).delete
+    (newsQ.filter(_.id === id)).delete
   }
-
-
-
 }
