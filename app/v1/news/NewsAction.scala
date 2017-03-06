@@ -52,3 +52,49 @@ class NewsAction @Inject()(messagesApi: MessagesApi)(
     }
   }
 }
+
+/**
+  * A wrapped request for comments resources.
+  *
+  * This is commonly used to hold request-specific information like
+  * security credentials, and useful shortcut methods.
+  */
+class CommentsRequest[A](request: Request[A], val messages: Messages)
+    extends WrappedRequest(request)
+
+/**
+  * The default action for the Comments resource.
+  *
+  * This is the place to put logging, metrics, to augment
+  * the request with contextual data, and manipulate the
+  * result.
+  */
+class CommentsAction @Inject()(messagesApi: MessagesApi)(
+    implicit ec: ExecutionContext)
+    extends ActionBuilder[CommentsRequest]
+    with HttpVerbs {
+
+  type CommentsRequestBlock[A] = CommentsRequest[A] => Future[Result]
+
+  private val logger = org.slf4j.LoggerFactory.getLogger(this.getClass)
+
+  override def invokeBlock[A](request: Request[A],
+                              block: CommentsRequestBlock[A]): Future[Result] = {
+    if (logger.isTraceEnabled()) {
+      logger.trace(s"invokeBlock: request = $request")
+    }
+
+    val messages = messagesApi.preferred(request)
+    val future = block(new CommentsRequest(request, messages))
+
+    future.map { result =>
+      request.method match {
+        case GET | HEAD =>
+          result.withHeaders("Cache-Control" -> s"max-age: 100")
+        case other =>
+          result
+      }
+    }
+  }
+}
+

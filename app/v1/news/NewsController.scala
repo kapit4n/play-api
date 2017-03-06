@@ -6,17 +6,20 @@ import play.api.data.Form
 import play.api.libs.json.Json
 import play.api.mvc._
 
+
 import scala.concurrent.{ExecutionContext, Future}
 
 case class NewsFormInput(title: String, body: String, likes: Int)
+
+case class CommentsFormInput(newsId: Int, body: String, likes: Int)
 
 /**
   * Takes HTTP requests and produces JSON.
   */
 class NewsController @Inject()(
-    action: NewsAction,
+    action: NewsAction, commentsAction: CommentsAction,
     handler: NewsResourceHandler)(implicit ec: ExecutionContext)
-    extends Controller {
+    extends Controller{
 
   private val form: Form[NewsFormInput] = {
     import play.api.data.Forms._
@@ -30,6 +33,18 @@ class NewsController @Inject()(
     )
   }
 
+  private val formComments: Form[CommentsFormInput] = {
+    import play.api.data.Forms._
+
+    Form(
+      mapping(
+        "newsId" -> number,
+        "body" -> text,
+        "likes" -> number
+      )(CommentsFormInput.apply)(CommentsFormInput.unapply)
+    )
+  }
+
   def index: Action[AnyContent] = {
     action.async { implicit request =>
       handler.find.map { news =>
@@ -38,9 +53,23 @@ class NewsController @Inject()(
     }
   }
 
+  def comments(id: String): Action[AnyContent] = {
+    commentsAction.async { implicit request =>
+      handler.findComments(id).map { news =>
+        Ok(Json.toJson(news))
+      }
+    }
+  }
+
   def process: Action[AnyContent] = {
     action.async { implicit request =>
       processJsonNews()
+    }
+  }
+
+  def processComments: Action[AnyContent] = {
+    commentsAction.async { implicit request =>
+      processJsonComments()
     }
   }
 
@@ -82,4 +111,20 @@ class NewsController @Inject()(
 
     form.bindFromRequest().fold(failure, success)
   }
+
+  private def processJsonComments[A]()(
+      implicit request: CommentsRequest[A]): Future[Result] = {
+    def failureComments(badForm: Form[CommentsFormInput]) = {
+      Future.successful(BadRequest("badForm.errorsAsJson"))
+    }
+
+    def successComments(input: CommentsFormInput) = {
+      handler.createComment(input).map { news =>
+        Created(Json.toJson(news)).withHeaders(LOCATION -> news.link)
+      }
+    }
+
+    formComments.bindFromRequest().fold(failureComments, successComments)
+  }
+
 }

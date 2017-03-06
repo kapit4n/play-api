@@ -11,6 +11,11 @@ import play.api.libs.json._
   */
 case class NewsResource(id: String, link: String, title: String, body: String, likes: Int)
 
+/**
+  * DTO for displaying news information.
+  */
+case class CommentsResource(id: String, link: String, newsId: Int, body: String, likes: Int)
+
 object NewsResource {
 
   /**
@@ -29,6 +34,24 @@ object NewsResource {
   }
 }
 
+object CommentsResource {
+
+  /**
+    * Mapping to write a CommentsResource out as a JSON value.
+    */
+  implicit val implicitWrites = new Writes[CommentsResource] {
+    def writes(comments: CommentsResource): JsValue = {
+      Json.obj(
+        "id" -> comments.id,
+        "link" -> comments.link,
+        "newsId" -> comments.newsId,
+        "body" -> comments.body,
+        "likes" -> comments.likes
+      )
+    }
+  }
+}
+
 /**
   * Controls access to the backend data, returning [[NewsResource]]
   */
@@ -41,6 +64,14 @@ class NewsResourceHandler @Inject()(
     // We don't actually create the news, so return what we have
     newsRepository.create(data).map { res =>
       createNewsResource(res)
+    }
+  }
+
+  def createComment(newsInput: CommentsFormInput): Future[CommentsResource] = {
+    val data = CommentsData(0, newsInput.newsId, newsInput.body, 0)
+    // We don't actually create the news, so return what we have
+    newsRepository.createComment(data).map { res =>
+      createCommentsResource(res)
     }
   }
 
@@ -68,6 +99,12 @@ class NewsResourceHandler @Inject()(
     }
   }
 
+  def findComments(id: String): Future[Iterable[CommentsResource]] = {
+    newsRepository.listComments(id.toInt).map { commentsDataList =>
+      commentsDataList.map(commentsData => createCommentsResource(commentsData))
+    }
+  }
+
   def delete(id: String): Future[Int] = {
     newsRepository.delete(id.toInt).map { res => res
     }
@@ -75,6 +112,10 @@ class NewsResourceHandler @Inject()(
 
   private def createNewsResource(p: NewsData): NewsResource = {
     NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body, p.likes)
+  }
+
+  private def createCommentsResource(p: CommentsData): CommentsResource = {
+    CommentsResource(p.id.toString, routerProvider.get.linkComment(p.newsId, p.id), p.newsId, p.body, p.likes)
   }
 
 }

@@ -12,11 +12,9 @@ create table news (
 
 create table comments (
   id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  newsId INT(6) not null,
+  newsId INT(6) UNSIGNED,
   body VARCHAR(100),
   likes INT(6),
   FOREIGN KEY (newsId)
-    REFERENCES news(id)
-    ON DELETE CASCADE
+    REFERENCES news (id)
 );
-

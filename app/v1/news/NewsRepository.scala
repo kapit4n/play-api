@@ -24,8 +24,12 @@ object CommentsData {
   */
 trait NewsRepository {
   def create(data: NewsData): Future[NewsData]
+  
+  def createComment(data: CommentsData): Future[CommentsData]
 
   def list(): Future[Iterable[NewsData]]
+
+  def listComments(id: Int): Future[Iterable[CommentsData]]
 
   def get(id: Int): Future[Option[NewsData]]
 
@@ -73,15 +77,28 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
       }
   }
 
+  override def listComments(id: Int): Future[Iterable[CommentsData]] = {
+      db.run {
+        commentsQ.filter(_.newsId === id).sortBy(m => (m.id)).result
+      }
+  }
+
   override def get(id: Int): Future[Option[NewsData]] = db.run {
     newsQ.filter(_.id === id).result.headOption
   }
 
   def create(data: NewsData): Future[NewsData] = db.run {
-    val pair = ("Title", "body", 1)
+    val pair = (data.title, data.body, data.likes)
     (newsQ.map(p => (p.title, p.body, p.likes))
       returning newsQ.map(_.id)
       into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2, nameAge._3))) += pair
+  }
+
+  def createComment(data: CommentsData): Future[CommentsData] = db.run {
+    val pair = (data.newsId, data.body, data.likes)
+    (commentsQ.map(p => (p.newsId, p.body, p.likes))
+      returning commentsQ.map(_.id)
+      into ((nameAge, id) => CommentsData(id, nameAge._1, nameAge._2, nameAge._3))) += pair
   }
 
   def reaction(id: Int): Future[Option[NewsData]] = db.run {
