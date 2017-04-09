@@ -21,29 +21,74 @@ sbt run
 Play will start up on the HTTP port at http://localhost:9000/.   You don't need to reploy or reload anything -- changing any source code while the server is running will automatically recompile and hot-reload the application on the next HTTP request. 
 
 ### Usage
+#### GETS
+```
+GET /v1/news HTTP/1.1
+Result
+[
+  {
+    "id": "1",
+    "link": "/v1/news/1",
+    "title": "Title",
+    "body": "body",
+    "likes": 1
+  },
+  {
+    "id": "2",
+    "link": "/v1/news/2",
+    "title": "news title",
+    "body": "News body 1",
+    "likes": 0
+  }
+]
+GET /v1/news/1 HTTP/1.1
+Result 
+{
+  "id": "1",
+  "link": "/v1/news/1",
+  "title": "Title",
+  "body": "body",
+  "likes": 1
+}
+GET /v1/news/1/comments HTTP/1.1
+Result 
+[
+  {
+    "id": "1",
+    "link": "/v1/news/1/comments/1",
+    "newsId": 1,
+    "body": "News body 1",
+    "likes": 0
+  },
+  {
+    "id": "2",
+    "link": "/v1/news/1/comments/2",
+    "newsId": 1,
+    "body": "Comments body 1",
+    "likes": 0
+  }
+]
+GET /v1/comments/1 HTTP/1.1
+Result
+{Return the comment with Id equal 1}
+```
+#### POSTS
+```
+POST /v1/news HTTP/1.1
+Example:
+{"title":"news title","body":"News body 1", likes: '2'}
+POST /v1/news/1/comments HTTP/1.1
+Example:
+{"newsId":"2","body":"Comments body 1", "likes": "1"}
+```
 
-If you call the same URL from the command line, you’ll see JSON. Using httpie, we can execute the command:
+#### DELETE
 
 ```
-http --verbose http://localhost:9000/v1/posts
-```
-
-and get back:
-
-```
-GET /v1/posts HTTP/1.1
-```
-
-Likewise, you can also send a POST directly as JSON:
-
-```
-http --verbose POST http://localhost:9000/v1/posts title="hello" body="world"
-```
-
-and get:
-
-```
-POST /v1/posts HTTP/1.1
+DELETE http://localhost:9000/v1/news/1 http/1.1
+{delete news with Id 1}
+DELETE http://localhost:9000/v1/comments/1 http/1.1
+{delete comment with Id 1}
 ```
 
 ### Load Testing
