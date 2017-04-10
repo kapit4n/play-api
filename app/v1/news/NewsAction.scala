@@ -5,6 +5,7 @@ import javax.inject.Inject
 import play.api.http.HttpVerbs
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.mvc._
+import play.api.http.HeaderNames
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -45,7 +46,9 @@ class NewsAction @Inject()(messagesApi: MessagesApi)(
     future.map { result =>
       request.method match {
         case GET | HEAD =>
-          result.withHeaders("Cache-Control" -> s"max-age: 100")
+          result.withHeaders("Cache-Control" -> s"max-age: 100", HeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN -> "*",
+        HeaderNames.ALLOW -> "*", HeaderNames.ACCESS_CONTROL_ALLOW_METHODS -> "POST, GET, PUT, DELETE, OPTIONS",
+        HeaderNames.ACCESS_CONTROL_ALLOW_HEADERS -> "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent")
         case other =>
           result
       }

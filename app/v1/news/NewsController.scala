@@ -119,8 +119,8 @@ class NewsController @Inject()(
     }
 
     def successComments(input: CommentsFormInput) = {
-      handler.createComment(input).map { news =>
-        Created(Json.toJson(news)).withHeaders(LOCATION -> news.link)
+      handler.createComment(input).map { comments =>
+        Created(Json.toJson(comments)).withHeaders(LOCATION -> comments.link)
       }
     }
 

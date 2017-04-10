@@ -26,6 +26,7 @@ object NewsResource {
       Json.obj(
         "id" -> news.id,
         "link" -> news.link,
+        "key" -> news.id,
         "title" -> news.title,
         "body" -> news.body,
         "likes" -> news.likes
