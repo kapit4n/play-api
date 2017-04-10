@@ -7,7 +7,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.driver.JdbcProfile
 import scala.concurrent.ExecutionContext.Implicits.global
 
-case class NewsData(id: Int, title: String, body: String, likes: Int)
+case class NewsData(id: Int, title: String, body: String, imgUrl: String, likes: Int)
 
 case class CommentsData(id: Int, newsId: Int, body: String, likes: Int)
 
@@ -52,8 +52,9 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def title = column[String]("title")
     def body = column[String]("body")
+    def imgUrl = column[String]("imgUrl")
     def likes = column[Int]("likes")
-    def * = (id, title, body, likes) <> ((NewsData.apply _).tupled, NewsData.unapply)
+    def * = (id, title, body, imgUrl, likes) <> ((NewsData.apply _).tupled, NewsData.unapply)
   }
 
   private val newsQ = TableQuery[NewsTable]
@@ -88,10 +89,10 @@ class NewsRepositoryImpl @Inject()(dbConfigProvider: DatabaseConfigProvider) ext
   }
 
   def create(data: NewsData): Future[NewsData] = db.run {
-    val pair = (data.title, data.body, data.likes)
-    (newsQ.map(p => (p.title, p.body, p.likes))
+    val pair = (data.title, data.body, data.imgUrl, data.likes)
+    (newsQ.map(p => (p.title, p.body, p.imgUrl, p.likes))
       returning newsQ.map(_.id)
-      into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2, nameAge._3))) += pair
+      into ((nameAge, id) => NewsData(id, nameAge._1, nameAge._2, nameAge._3, nameAge._4))) += pair
   }
 
   def createComment(data: CommentsData): Future[CommentsData] = db.run {
