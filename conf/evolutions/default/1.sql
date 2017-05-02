@@ -8,6 +8,7 @@ create table news (
   title VARCHAR(250) not null,
   body TEXT,
   imgUrl VARCHAR(250),
+  source VARCHAR(250),
   likes INT(6)
 );
 

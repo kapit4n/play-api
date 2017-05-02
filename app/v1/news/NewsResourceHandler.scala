@@ -9,7 +9,7 @@ import play.api.libs.json._
 /**
   * DTO for displaying news information.
   */
-case class NewsResource(id: String, link: String, title: String, body: String, imgUrl: String, likes: Int)
+case class NewsResource(id: String, link: String, title: String, body: String, imgUrl: String, source: String, likes: Int)
 
 /**
   * DTO for displaying news information.
@@ -29,6 +29,7 @@ object NewsResource {
         "key" -> news.id,
         "title" -> news.title,
         "imgUrl" -> news.imgUrl,
+        "source" -> news.source,
         "body" -> news.body,
         "likes" -> news.likes
       )
@@ -62,7 +63,7 @@ class NewsResourceHandler @Inject()(
     newsRepository: NewsRepository)(implicit ec: ExecutionContext) {
 
   def create(newsInput: NewsFormInput): Future[NewsResource] = {
-    val data = NewsData(0, newsInput.title, newsInput.body, newsInput.imgUrl, 0)
+    val data = NewsData(0, newsInput.title, newsInput.body, newsInput.imgUrl, newsInput.source, 0)
     // We don't actually create the news, so return what we have
     newsRepository.create(data).map { res =>
       createNewsResource(res)
@@ -113,7 +114,7 @@ class NewsResourceHandler @Inject()(
   }
 
   private def createNewsResource(p: NewsData): NewsResource = {
-    NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body, p.imgUrl, p.likes)
+    NewsResource(p.id.toString, routerProvider.get.link(p.id), p.title, p.body, p.imgUrl, p.source, p.likes)
   }
 
   private def createCommentsResource(p: CommentsData): CommentsResource = {

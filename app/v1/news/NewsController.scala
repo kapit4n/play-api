@@ -9,7 +9,7 @@ import play.api.mvc._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-case class NewsFormInput(title: String, body: String, imgUrl: String, likes: Int)
+case class NewsFormInput(title: String, body: String, imgUrl: String, source: String, likes: Int)
 
 case class CommentsFormInput(newsId: Int, body: String, likes: Int)
 
@@ -29,6 +29,7 @@ class NewsController @Inject()(
         "title" -> nonEmptyText,
         "body" -> text,
         "imgUrl" -> text,
+        "source" -> text,
         "likes" -> number
       )(NewsFormInput.apply)(NewsFormInput.unapply)
     )
