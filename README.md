@@ -1,12 +1,9 @@
 # Play REST API
 
 This is the example project for [Making a REST API in Play](http://developer.lightbend.com/guides/play-rest-api/index.html).
-
-## Appendix
-
-### Planning
-[Planning Board](https://github.com/kapit4n/play-news-api/projects/1)
-
+# Resources
+* http://localhost:9000/v1/posts
+* http://localhost:9000/v1/news
 
 ### Running
 
